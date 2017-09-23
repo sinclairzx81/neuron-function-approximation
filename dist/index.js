@@ -497,18 +497,21 @@
       var network_error = document.getElementById("network-error");
       function_editor.set('const f = x => x');
       network_editor.set("const f = () => new Trainer(new Network([\n  new Tensor(1,  \"tanh\"),\n  new Tensor(16, \"tanh\"),\n  new Tensor(16, \"tanh\"),\n  new Tensor(16, \"tanh\"),\n  new Tensor(1,  \"tanh\")\n]), {\n  momentum: 0.5,\n  step: 0.05\n})");
+      var ready = false;
       var user_function = null;
       var network = null;
+      var enumerable = index_2.range(-1, 1, 0.01);
+      var errors = new Array(enumerable.length);
       var update = function () {
+          ready = false;
           try {
-              var updated_function = function (x) { return index_2.clamp(index_2.createFunction(function_editor.get())(x), -1, 1); };
+              var updated_function_1 = function (x) { return index_2.clamp(index_2.createFunction(function_editor.get())(x), -1, 1); };
               var updated_network = index_2.createNetwork(network_editor.get(), index_3.Network, index_3.Trainer, index_3.Tensor);
-              for (var i = -1; i < 1; i += 0.01) {
-                  function_graph.plot(i, updated_function(i));
-              }
+              enumerable.forEach(function (i) { return function_graph.plot(i, updated_function_1(i)); });
               function_graph.present();
-              user_function = updated_function;
+              user_function = updated_function_1;
               network = updated_network();
+              ready = true;
           }
           catch (error) {
           }
@@ -517,18 +520,18 @@
       network_editor.change(function () { return update(); });
       update();
       setInterval(function () {
-          for (var i = -1; i < 1; i += 0.01) {
-              network.backward([i], [user_function(i)]);
+          try {
+              enumerable.forEach(function (i) { return network.backward([i], [user_function(i)]); });
+              enumerable.forEach(function (i, index) {
+                  var actual = network.forward([i]);
+                  network_graph.plot(i, network.forward([i])[0]);
+                  errors[index] = network.error(actual, [user_function(i)]);
+              });
+              network_graph.present();
+              network_error.innerHTML = "error " + errors.reduce(function (acc, error) { return acc + error; }, 0) / errors.length;
           }
-          var errors = [];
-          for (var i = -1; i < 1; i += 0.01) {
-              var actual = network.forward([i]);
-              network_graph.plot(i, network.forward([i])[0]);
-              var error = network.error(actual, [user_function(i)]);
-              errors.push(error);
+          catch (error) {
           }
-          network_graph.present();
-          network_error.innerHTML = "error " + errors.reduce(function (acc, error) { return acc + error; }, 0) / errors.length;
       }, 1);
   });
   

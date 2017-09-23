@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 import { Graph2D }                              from "./graphics/graph"
 import { Editor }                               from "./editor/index"
-import { createFunction, createNetwork, clamp } from "./common/index"
+import { createFunction, createNetwork, clamp, range } from "./common/index"
 import { Network, Tensor, Trainer }             from "./network/index"
 
 //--------------------------------------------------------
@@ -50,25 +50,27 @@ network_editor.set(`const f = () => new Trainer(new Network([
   momentum: 0.5,
   step: 0.05
 })`)
-
+let ready              = false
 let user_function: any = null
 let network: any       = null
+let enumerable         = range(-1, 1, 0.01)
+let errors             = new Array<number>(enumerable.length)
 
 //--------------------------------------------------------
 // handle updates
 //--------------------------------------------------------
 const update = () => {
+  ready = false
   try {
     // load updated parameters
     const updated_function = x => clamp( createFunction(function_editor.get())(x), -1, 1)
     const updated_network  = createNetwork(network_editor.get(), Network, Trainer, Tensor)
     // function graph
-    for(let i = -1; i < 1; i+= 0.01) {
-      function_graph.plot(i, updated_function(i))
-    }
+    enumerable.forEach(i => function_graph.plot(i, updated_function(i)))
     function_graph.present()
     user_function = updated_function
     network       = updated_network()
+    ready = true
   } catch(error) {
     // ignore
   }
@@ -79,26 +81,24 @@ network_editor.change(() => update())
 
 update()
 setInterval(() => {
-  // train network with user function.
-  for(let i = -1; i < 1; i+= 0.01) {
-    network.backward([i], [user_function(i)])
+  try {
+    // train network with user function.
+    enumerable.forEach(i => network.backward([i], [user_function(i)]))
+    // propagate the network, record error.
+    enumerable.forEach((i, index) => {
+      const actual = network.forward([i])
+      network_graph.plot(i, network.forward([i])[0])
+      errors[index] = network.error(actual, [user_function(i)])
+    })
+
+    // render the graph
+    network_graph.present()
+
+    // update with network error
+    network_error.innerHTML = `error ` + errors.reduce((acc, error) => acc + error, 0) / errors.length
+  } catch(error) {
+
   }
-  
-  // propagate the network, record error.
-  const errors = []
-  for(let i = -1; i < 1; i+= 0.01) {
-    const actual = network.forward([i])
-    network_graph.plot(i, network.forward([i])[0])
-    const error = network.error(actual, [user_function(i)])
-    errors.push(error)
-  }
-
-  // render the graph
-  network_graph.present()
-
-  // update with network error
-  network_error.innerHTML = `error ` + errors.reduce((acc, error) => acc + error, 0) / errors.length
-
 }, 1)
 
 
