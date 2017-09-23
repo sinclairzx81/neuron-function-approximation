@@ -1,6 +1,6 @@
 # neuron: function approximation
 
-An experiment using neural networks to approximate pure functions.
+An experiment using neural networks to approximate pure functions [demo](https://sinclairzx81.github.io/neuron-function-approximation/)
 
 ### overview
 
