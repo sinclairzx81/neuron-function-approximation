@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="./index.css" rel="stylesheet"></link>
+  <script src="//ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script async src="./index.js"></script>
+  <title>neuron: function approximation</title>
+</head>
+<body>
+  <div id="container">
+    <div class="row">
+      <h1>neuron: function approximation</h1>
+      <p>An experiment using neural networks to approximate pure functions, see 
+        <a href="https://en.wikipedia.org/wiki/Universal_approximation_theorem" target="_blank">universal approximation theorem</a> for details.</p>
+    </div>
+    <div class="row">
+      <div class="left">
+        <h2>function</h2>
+        <div id="function-editor"></div>
+      </div>
+      <div class="right">
+        <h2>network</h2>
+        <div id="network-editor"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="left">
+        <h2>output</h2>
+        <canvas id="function-canvas" width="256" height="256" style="border: #000 1px dashed;"></canvas>
+      </div>
+      <div class="right">
+        <h2>output <span id="network-error"></span></h2>
+        <canvas id="network-canvas" width="256" height="256" style="border: #000 1px dashed;"></canvas>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
